@@ -6,11 +6,17 @@
 
 /// A voxel grid data structure.
 ///
-/// Inspired by the [image](https://crates.io/crates/image) crate.
+/// Implemented based on the [image](https://crates.io/crates/image) crate.
 pub mod buffer;
 
 /// Draws models using turtle graphics.
 ///
-/// Implemented based on the description in [The Algorithmic Beauty of
-/// Plants](http://algorithmicbotany.org/papers/abop/abop-ch1.pdf) page 6.
+/// Implemented based on the descriptions in [The Algorithmic Beauty of
+/// Plants](http://algorithmicbotany.org/papers/abop/abop-ch1.pdf).
 pub mod turtle;
+
+/// Inteprets L System strings and draws them using turtle graphics.
+///
+/// Implemented based on the descriptions in [The Algorithmic Beauty of
+/// Plants](http://algorithmicbotany.org/papers/abop/abop-ch1.pdf).
+pub mod l_system;
