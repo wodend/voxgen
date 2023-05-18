@@ -8,8 +8,13 @@ use std::fs;
 use std::hash::Hash;
 use std::path::PathBuf;
 use std::collections::HashMap;
+use enterpolation::{
+    Curve,
+    linear::ConstEquidistantLinear,
+};
+use palette::{LinSrgba, Srgba};
 
-use crate::turtle::TurtleGraphics;
+use crate::turtle::{TurtleGraphics, self};
 
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -20,6 +25,8 @@ pub enum Command {
     Right,
     DrawLeft,
     DrawRight,
+    SubfigureA,
+    SubfigureB,
 }
 
 fn parse_sentence(sentence: &str) -> IResult<&str, Vec<Command>> {
@@ -31,6 +38,8 @@ fn parse_sentence(sentence: &str) -> IResult<&str, Vec<Command>> {
             value(Command::Right, tag("-")),
             value(Command::DrawLeft, tag("L")),
             value(Command::DrawRight, tag("R")),
+            value(Command::SubfigureA, tag("A")),
+            value(Command::SubfigureB, tag("B")),
         ))
     )(sentence)
 }
@@ -49,6 +58,7 @@ fn parse_productions(rules: Vec<&str>) -> IResult<&str, HashMap<Command, Vec<Com
 }
 
 
+#[derive(Debug)]
 pub struct LSystem {
     name: String,
     axiom: Vec<Command>,
@@ -85,6 +95,7 @@ impl LSystem {
     }
 
     pub fn commands(&self, n: u32) -> Vec<Command> {
+        println!("{:?}", self);
         self.derive(&self.axiom, n)
     }
 }
@@ -127,6 +138,7 @@ impl LSystem {
 ///     .derivation_length(8)
 ///     .offset_x(10.0)
 ///     .offset_y(-15.0)
+///     .rainbow(true)
 ///     .render(l_system);
 /// ```
 /// 
@@ -148,6 +160,26 @@ impl LSystem {
 ///     .offset_y(-20.0)
 ///     .render(l_system);
 /// ```
+/// 
+/// Render a Hilbert curve.
+/// ```
+/// # use voxgen::l_system::{LSystem, RenderOptions};
+/// let l_system = LSystem::new(
+///     "hilbert",
+///     "A",
+///     vec![
+///         "A→+BF-AFA-FB+",
+///         "B→-AF+BFB+FA-",
+///     ],
+/// );
+/// RenderOptions::new()
+///     .size_x(127)
+///     .size_y(127)
+///     .offset_x(63.0)
+///     .offset_y(-63.0)
+///     .derivation_length(6)
+///     .render(l_system);
+/// ```
 pub struct RenderOptions {
     derivation_length: u32,
     step_size: f32,
@@ -158,6 +190,7 @@ pub struct RenderOptions {
     offset_x: f32,
     offset_y: f32,
     offset_z: f32,
+    rainbow: bool,
 }
 
 impl RenderOptions {
@@ -172,6 +205,7 @@ impl RenderOptions {
             offset_x: 0.0,
             offset_y: 0.0,
             offset_z: 0.0,
+            rainbow: false,
         }
     }
 
@@ -210,6 +244,90 @@ impl RenderOptions {
         self
     }
 
+    pub fn get_rainbow(&self, len: usize) -> Vec<[u8; 4]> {
+        let curve = ConstEquidistantLinear::<f32, _, 7>::equidistant_unchecked([
+            LinSrgba::new(1.0, 0.0, 0.0, 1.0),
+            LinSrgba::new(1.0, 1.0, 0.0, 1.0),
+            LinSrgba::new(0.0, 1.0, 0.0, 1.0),
+            LinSrgba::new(0.0, 1.0, 1.0, 1.0),
+            LinSrgba::new(0.0, 0.0, 1.0, 1.0),
+            LinSrgba::new(1.0, 0.0, 1.0, 1.0),
+            LinSrgba::new(1.0, 0.0, 0.0, 1.0),
+        ]);
+        let mut gradient: Vec<[u8; 4]> = Vec::new();
+        for srgba in curve.take(len) {
+            let rgba = Srgba::from_linear(srgba).into();
+            gradient.push(rgba);
+        }
+        gradient
+    }
+
+    pub fn rainbow(&mut self, rainbow: bool) -> &mut Self {
+        self.rainbow = rainbow;
+        self
+    }
+
+    fn draw(&self, turtle: &mut TurtleGraphics, c: Command) {
+        match c {
+            Command::Step => turtle.step(self.step_size),
+            Command::Draw => turtle.draw(self.step_size),
+            Command::Left => turtle.left(self.angle_increment),
+            Command::Right => turtle.right(self.angle_increment),
+            Command::DrawLeft => {
+                turtle.draw(self.step_size);
+                turtle.left(self.angle_increment);
+                turtle.draw(self.step_size);
+            },
+            Command::DrawRight => {
+                turtle.draw(self.step_size);
+                turtle.right(self.angle_increment);
+                turtle.draw(self.step_size);
+            },
+            _ => (),
+        }
+    }
+
+    fn draw_gradient(&self, turtle: &mut TurtleGraphics, c: Command, colors: &[[u8; 4]]) {
+        match c {
+            Command::Step => turtle.step(self.step_size),
+            Command::Draw => turtle.draw_gradient(self.step_size, colors),
+            Command::Left => turtle.left(self.angle_increment),
+            Command::Right => turtle.right(self.angle_increment),
+            Command::DrawLeft => {
+                turtle.draw_gradient(self.step_size, &colors[0..3]);
+                turtle.left(self.angle_increment);
+                turtle.draw_gradient(self.step_size, &colors[3..6]);
+            },
+            Command::DrawRight => {
+                turtle.draw_gradient(self.step_size, &colors[0..3]);
+                turtle.right(self.angle_increment);
+                turtle.draw_gradient(self.step_size, &colors[3..6]);
+            },
+            _ => (),
+        }
+    }
+
+    fn draw_color(&self, turtle: &mut TurtleGraphics, c: Command, color: &[u8; 4]) {
+        match c {
+            Command::Step => turtle.step(self.step_size),
+            Command::Draw => turtle.draw_color(self.step_size, color),
+            Command::Left => turtle.left(self.angle_increment),
+            Command::Right => turtle.right(self.angle_increment),
+            Command::DrawLeft => {
+                turtle.draw_color(self.step_size, color);
+                turtle.left(self.angle_increment);
+                turtle.draw_color(self.step_size, color);
+            },
+            Command::DrawRight => {
+                turtle.draw_color(self.step_size, color);
+                turtle.right(self.angle_increment);
+                turtle.draw_color(self.step_size, color);
+            },
+            _ => (),
+        }
+    }
+
+
     pub fn render(&self, l_system: LSystem) {
         let mut turtle = TurtleGraphics::new(self.size_x, self.size_y, self.size_z);
         // Initialize the turtle in the center of the canvas.
@@ -222,22 +340,20 @@ impl RenderOptions {
         turtle.step(self.offset_x);
         turtle.left(std::f32::consts::FRAC_PI_2);
 
-        for c in l_system.commands(self.derivation_length) {
+        let commands = l_system.commands(self.derivation_length);
+        let mut i = 0;
+        let r = self.get_rainbow(250);
+        for c in &commands {
             match c {
-                Command::Step => turtle.step(self.step_size),
-                Command::Draw => turtle.draw(self.step_size),
-                Command::Left => turtle.left(self.angle_increment),
-                Command::Right => turtle.right(self.angle_increment),
-                Command::DrawLeft => {
-                    turtle.draw(self.step_size);
-                    turtle.left(self.angle_increment);
-                    turtle.draw(self.step_size);
-                },
-                Command::DrawRight => {
-                    turtle.draw(self.step_size);
-                    turtle.right(self.angle_increment);
-                    turtle.draw(self.step_size);
-                },
+                Command::Step => (),
+                Command::Left => (),
+                Command::Right => (),
+                _ => { if i < 250 - 1 { i += 1 } else {}; },
+            }
+            if self.rainbow {
+                self.draw_color(&mut turtle, *c, &r[i]);
+            } else {
+                self.draw(&mut turtle, *c);
             }
         }
         turtle.buf().save(format!("test/volumes/{}_{}.vox", l_system.name(), self.derivation_length)).unwrap();
