@@ -1,21 +1,17 @@
+use enterpolation::{linear::ConstEquidistantLinear, Curve};
 use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::combinator::value;
 use nom::multi::many0;
 use nom::sequence::separated_pair;
 use nom::IResult;
+use palette::{LinSrgba, Srgba};
+use std::collections::HashMap;
 use std::fs;
 use std::hash::Hash;
 use std::path::PathBuf;
-use std::collections::HashMap;
-use enterpolation::{
-    Curve,
-    linear::ConstEquidistantLinear,
-};
-use palette::{LinSrgba, Srgba};
 
-use crate::turtle::{TurtleGraphics, self};
-
+use crate::turtle::{self, TurtleGraphics};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Command {
@@ -30,33 +26,26 @@ pub enum Command {
 }
 
 fn parse_sentence(sentence: &str) -> IResult<&str, Vec<Command>> {
-    many0(
-        alt((
-            value(Command::Draw, tag("F")),
-            value(Command::Step, tag("f")),
-            value(Command::Left, tag("+")),
-            value(Command::Right, tag("-")),
-            value(Command::DrawLeft, tag("L")),
-            value(Command::DrawRight, tag("R")),
-            value(Command::SubfigureA, tag("A")),
-            value(Command::SubfigureB, tag("B")),
-        ))
-    )(sentence)
+    many0(alt((
+        value(Command::Draw, tag("F")),
+        value(Command::Step, tag("f")),
+        value(Command::Left, tag("+")),
+        value(Command::Right, tag("-")),
+        value(Command::DrawLeft, tag("L")),
+        value(Command::DrawRight, tag("R")),
+        value(Command::SubfigureA, tag("A")),
+        value(Command::SubfigureB, tag("B")),
+    )))(sentence)
 }
 
 fn parse_productions(rules: Vec<&str>) -> IResult<&str, HashMap<Command, Vec<Command>>> {
     let mut output = HashMap::new();
     for rule in rules {
-        let pair = separated_pair(
-            parse_sentence,
-            tag("→"),
-            parse_sentence,
-        )(rule)?;
-        output.insert(pair.1.0[0], pair.1.1);
+        let pair = separated_pair(parse_sentence, tag("→"), parse_sentence)(rule)?;
+        output.insert(pair.1 .0[0], pair.1 .1);
     }
     Ok(("", output))
 }
-
 
 #[derive(Debug)]
 pub struct LSystem {
@@ -100,16 +89,15 @@ impl LSystem {
     }
 }
 
-
 /// Render an L System string in 3D with it's turtle intepretation.
-/// 
+///
 /// # Examples
 ///
 /// Render a Koch curve.
 /// ```
 /// use voxgen::l_system::{LSystem, RenderOptions};
 ///
-/// 
+///
 /// let l_system = LSystem::new(
 ///     "koch",
 ///     "F-F-F-F",
@@ -122,7 +110,7 @@ impl LSystem {
 ///     .offset_y(-20.0)
 ///     .render(l_system);
 /// ```
-/// 
+///
 /// Render a dragon curve.
 /// ```
 /// # use voxgen::l_system::{LSystem, RenderOptions};
@@ -141,7 +129,7 @@ impl LSystem {
 ///     .rainbow(true)
 ///     .render(l_system);
 /// ```
-/// 
+///
 /// Render a Sierpinski gasket.
 /// ```
 /// # use voxgen::l_system::{LSystem, RenderOptions};
@@ -160,7 +148,7 @@ impl LSystem {
 ///     .offset_y(-20.0)
 ///     .render(l_system);
 /// ```
-/// 
+///
 /// Render a Hilbert curve.
 /// ```
 /// # use voxgen::l_system::{LSystem, RenderOptions};
@@ -277,12 +265,12 @@ impl RenderOptions {
                 turtle.draw(self.step_size);
                 turtle.left(self.angle_increment);
                 turtle.draw(self.step_size);
-            },
+            }
             Command::DrawRight => {
                 turtle.draw(self.step_size);
                 turtle.right(self.angle_increment);
                 turtle.draw(self.step_size);
-            },
+            }
             _ => (),
         }
     }
@@ -297,12 +285,12 @@ impl RenderOptions {
                 turtle.draw_gradient(self.step_size, &colors[0..3]);
                 turtle.left(self.angle_increment);
                 turtle.draw_gradient(self.step_size, &colors[3..6]);
-            },
+            }
             Command::DrawRight => {
                 turtle.draw_gradient(self.step_size, &colors[0..3]);
                 turtle.right(self.angle_increment);
                 turtle.draw_gradient(self.step_size, &colors[3..6]);
-            },
+            }
             _ => (),
         }
     }
@@ -317,16 +305,15 @@ impl RenderOptions {
                 turtle.draw_color(self.step_size, color);
                 turtle.left(self.angle_increment);
                 turtle.draw_color(self.step_size, color);
-            },
+            }
             Command::DrawRight => {
                 turtle.draw_color(self.step_size, color);
                 turtle.right(self.angle_increment);
                 turtle.draw_color(self.step_size, color);
-            },
+            }
             _ => (),
         }
     }
-
 
     pub fn render(&self, l_system: LSystem) {
         let mut turtle = TurtleGraphics::new(self.size_x, self.size_y, self.size_z);
@@ -348,7 +335,12 @@ impl RenderOptions {
                 Command::Step => (),
                 Command::Left => (),
                 Command::Right => (),
-                _ => { if i < 250 - 1 { i += 1 } else {}; },
+                _ => {
+                    if i < 250 - 1 {
+                        i += 1
+                    } else {
+                    };
+                }
             }
             if self.rainbow {
                 self.draw_color(&mut turtle, *c, &r[i]);
@@ -356,6 +348,13 @@ impl RenderOptions {
                 self.draw(&mut turtle, *c);
             }
         }
-        turtle.buf().save(format!("test/volumes/{}_{}.vox", l_system.name(), self.derivation_length)).unwrap();
+        turtle
+            .buf()
+            .save(format!(
+                "test/volumes/{}_{}.vox",
+                l_system.name(),
+                self.derivation_length
+            ))
+            .unwrap();
     }
 }
