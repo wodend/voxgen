@@ -65,7 +65,7 @@ turtle.buf().save("test/volumes/mid_y_line.vox").unwrap();
 
 Inteprets L System strings and renders them using `TurtleGraphics`.
 
-```
+```rust
 use voxgen::l_system::{LSystem, RenderOptions};
 
 // Render a Koch curve.
