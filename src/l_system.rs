@@ -84,7 +84,6 @@ impl LSystem {
     }
 
     pub fn commands(&self, n: u32) -> Vec<Command> {
-        println!("{:?}", self);
         self.derive(&self.axiom, n)
     }
 }

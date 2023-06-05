@@ -1,33 +1,8 @@
-//! Procedural MagicaVoxel .vox generation.
-//!
-//! Provides utilities for generating
-//! [MagicaVoxel](https://ephtracy.github.io/) models using popular 3D
-//! procedural generation techniques.
-
 #![doc = include_str!("../README.md")]
 
 /// A voxel grid data structure.
 ///
 /// Implemented based on the [image](https://crates.io/crates/image) crate.
-///
-/// # Examples
-///
-/// Draw a simple 2D red cross and save as a MagicaVoxel .vox file.
-/// ```
-/// use voxgen::buffer::{ArrayVoxelBuffer, Rgba, VoxelBuffer};
-///
-/// let mut vol = ArrayVoxelBuffer::new(32, 32, 32);
-///
-/// for x in 15..=17 {
-///     for y in 8..24 {
-///         *vol.voxel_mut(x, y, 0) = Rgba([255, 0, 0, 255]);
-///         *vol.voxel_mut(y, x, 0) = Rgba([255, 0, 0, 255]);
-///     }
-/// }
-///
-/// vol.save("test/volumes/red_cross.vox")?;
-/// # Ok::<(), std::io::Error>(())
-/// ```
 pub mod buffer;
 
 /// Draw on voxel buffers using turtle graphics.
@@ -37,25 +12,6 @@ pub mod buffer;
 /// Plants](http://algorithmicbotany.org/papers/abop/abop-ch1.pdf).
 ///
 /// # Examples
-///
-/// Draw a line and save the output.
-/// ```
-/// use voxgen::turtle::TurtleGraphics;
-///
-/// let mut turtle = TurtleGraphics::new(3, 3, 3);
-///
-/// // Move the turtle 1 step forward (east) without drawing.
-/// turtle.step(1.0);
-///
-/// // Turn the turtle pi/2 radians left (facing north).
-/// turtle.left(std::f32::consts::FRAC_PI_2);
-///
-/// // Draw a line 2 steps down the middle of the y axis.
-/// turtle.draw(2.0);
-///
-/// // Save the current drawing as a magicavoxel .vox file.
-/// turtle.buf().save("test/volumes/mid_y_line.vox").unwrap();
-/// ```
 ///
 /// Draw a gradient line.
 /// ```
@@ -103,42 +59,6 @@ pub mod turtle;
 ///
 /// # Examples
 ///
-/// Render a Koch curve.
-/// ```
-/// use voxgen::l_system::{LSystem, RenderOptions};
-///
-///
-/// let l_system = LSystem::new(
-///     "koch",
-///     "F-F-F-F",
-///     vec!["F→F-F+F+FF-F-F+F"],
-/// );
-/// // Builder pattern for custom rendering options.
-/// // Default path is test/volumes/{l_system_name}_{derivation_length}.vox.
-/// RenderOptions::new()
-///     .offset_x(-20.0)
-///     .offset_y(-20.0)
-///     .render(l_system);
-/// ```
-///
-/// Render a dragon curve.
-/// ```
-/// # use voxgen::l_system::{LSystem, RenderOptions};
-/// let l_system = LSystem::new(
-///     "dragon",
-///     "L",
-///     vec![
-///         "L→L+R+",
-///         "R→-L-R",
-///     ]
-/// );
-/// RenderOptions::new()
-///     .derivation_length(8)
-///     .offset_x(10.0)
-///     .offset_y(-15.0)
-///     .rainbow(true)
-///     .render(l_system);
-/// ```
 ///
 /// Render a Sierpinski gasket.
 /// ```

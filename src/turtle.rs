@@ -16,7 +16,7 @@ pub struct Turtle {
     heading: f32,
 }
 
-/// Draw a `ArrayVoxelBuffer` using LOGO-style turtle graphics commands.
+/// Draw an `ArrayVoxelBuffer` using LOGO-style turtle graphics commands.
 pub struct TurtleGraphics {
     buf: ArrayVoxelBuffer<Rgba>,
     state: Turtle,
