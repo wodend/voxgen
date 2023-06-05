@@ -8,6 +8,7 @@ pub struct Turtle {
     x: i32,
     y: i32,
     heading: f32,
+    color: Rgba,
 }
 
 /// Draw an `ArrayVoxelBuffer` using LOGO-style turtle graphics commands.
@@ -28,6 +29,7 @@ impl TurtleGraphics {
                 x: 0,
                 y: 0,
                 heading: 0.0,
+                color: Rgba([0, 0, 0, 255])
             },
         }
     }
@@ -47,19 +49,13 @@ impl TurtleGraphics {
         self.step(step_size);
         let (x1, y1) = (self.state.x, self.state.y);
         for (x, y) in Bresenham::new((x0, y0), (x1, y1)) {
-            *self.buf.voxel_mut(x as u32, y as u32, 0) = Rgba([0, 0, 0, 255]);
+            *self.buf.voxel_mut(x as u32, y as u32, 0) = self.state.color;
         }
     }
 
-    /// Move the turtle and draw a colored line along it's path.
-    pub fn draw_color(&mut self, step_size: f32, color: &[u8; 4]) {
-        let (x0, y0) = (self.state.x, self.state.y);
-        self.step(step_size);
-        let (x1, y1) = (self.state.x, self.state.y);
-        let points = Bresenham::new((x0, y0), (x1, y1));
-        for (i, (x, y)) in points.enumerate() {
-            *self.buf.voxel_mut(x as u32, y as u32, 0) = Rgba(*color);
-        }
+    /// Set the turtle drawing color to the RGBA value of `color`.
+    pub fn color(&mut self, color: Rgba) {
+        self.state.color = color;
     }
 
     /// Rotate the turtle `angle_increment` radians to the left.

@@ -1,3 +1,4 @@
+use crate::voxel_buffer::{Voxel, Rgba};
 use crate::turtle_graphics::TurtleGraphics;
 use enterpolation::{linear::ConstEquidistantLinear, Curve};
 use nom::branch::alt;
@@ -193,26 +194,6 @@ impl RenderOptions {
         }
     }
 
-    fn draw_color(&self, turtle: &mut TurtleGraphics, c: Command, color: &[u8; 4]) {
-        match c {
-            Command::Step => turtle.step(self.step_size),
-            Command::Draw => turtle.draw_color(self.step_size, color),
-            Command::Left => turtle.left(self.angle_increment),
-            Command::Right => turtle.right(self.angle_increment),
-            Command::DrawLeft => {
-                turtle.draw_color(self.step_size, color);
-                turtle.left(self.angle_increment);
-                turtle.draw_color(self.step_size, color);
-            }
-            Command::DrawRight => {
-                turtle.draw_color(self.step_size, color);
-                turtle.right(self.angle_increment);
-                turtle.draw_color(self.step_size, color);
-            }
-            _ => (),
-        }
-    }
-
     pub fn render(&self, l_system: LSystem) {
         let mut turtle = TurtleGraphics::new(self.size_x, self.size_y, self.size_z);
         // Initialize the turtle in the center of the canvas.
@@ -241,10 +222,9 @@ impl RenderOptions {
                 }
             }
             if self.rainbow {
-                self.draw_color(&mut turtle, *c, &r[i]);
-            } else {
-                self.draw(&mut turtle, *c);
+                turtle.color(*<Rgba>::from_slice(&r[i]));
             }
+            self.draw(&mut turtle, *c);
         }
         turtle
             .buf()

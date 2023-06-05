@@ -53,7 +53,7 @@ pub const CHANNEL_COUNT_RGBA: usize = 4;
 pub struct Rgba(pub [u8; CHANNEL_COUNT_RGBA]);
 
 impl Voxel for Rgba {
-    const SIZE: u8 = 8;
+    const SIZE: u8 = 4;
 
     #[inline(always)]
     fn as_slice(&self) -> &[u8] {
