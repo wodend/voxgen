@@ -20,8 +20,9 @@ pub struct TurtleGraphics {
 impl TurtleGraphics {
     /// Create a new `TurtleGraphics` object of the given dimensions.
     ///
-    /// The `ArrayVoxelBuffer` is initially empty, and the turtle is at position (0,
-    /// 0, 0) with a heading of 0.0 radians (facing east).
+    /// The `ArrayVoxelBuffer` is initially empty. The turtle starts at position
+    /// `(0, 0, 0)` with a heading of `0.0` radians (facing east) with RGBA
+    /// drawing color `[0, 0, 0, 255]`.
     pub fn new(size_x: u32, size_y: u32, size_z: u32) -> TurtleGraphics {
         TurtleGraphics {
             buf: ArrayVoxelBuffer::new(size_x, size_y, size_z),

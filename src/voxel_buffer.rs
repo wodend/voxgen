@@ -75,7 +75,10 @@ impl Voxel for Rgba {
 ///
 /// Array-based voxel buffers are dense. Every voxel in the image has data
 /// stored for it, whether it is empty or not. This type of storage should be
-/// used when fast updates are more important than memory usage.
+/// used when fast updates are more important than memory usage. Coordinates use
+/// MagicaVoxel conventions, where voxel position `(0, 0, 0)` is in the bottom
+/// left corner closest to the camera. Increasing `x` moves to the right,
+/// increasing `y` moves away from the camera, and increasing `z` moves up.
 pub struct ArrayVoxelBuffer<T> {
     size_x: u32,
     size_y: u32,
