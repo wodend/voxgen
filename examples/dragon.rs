@@ -3,14 +3,7 @@ use voxgen::l_system::{LSystem, RenderOptions};
 
 fn main() {
     // Define an L System
-    let l_system = LSystem::new(
-        "dragon",
-        "L",
-        vec![
-            "L→L+R+",
-            "R→-L-R",
-        ]
-    );
+    let l_system = LSystem::new("dragon", "L", vec!["L→L+R+", "R→-L-R"]);
     // Render the L System as a MagicaVoxel .vox file.
     RenderOptions::new()
         .derivation_length(8)

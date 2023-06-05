@@ -1,12 +1,6 @@
-use crate::buffer::{ArrayVoxelBuffer, Rgba, VoxelBuffer};
-use std::{ops::Index, path::Path};
-
-use enterpolation::linear::{ConstEquidistantLinear, Linear};
 use line_drawing::Bresenham;
-use palette::encoding::Srgb;
-use palette::rgb::Rgb;
-use palette::Alpha;
-use palette::{FromColor, IntoColor, Lch, LinSrgba, Mix, Srgba};
+
+use crate::voxel_buffer::{ArrayVoxelBuffer, Rgba, VoxelBuffer};
 
 /// The drawing turtle.
 #[derive(Copy, Clone, Debug)]
@@ -54,17 +48,6 @@ impl TurtleGraphics {
         let (x1, y1) = (self.state.x, self.state.y);
         for (x, y) in Bresenham::new((x0, y0), (x1, y1)) {
             *self.buf.voxel_mut(x as u32, y as u32, 0) = Rgba([0, 0, 0, 255]);
-        }
-    }
-
-    /// Move the turtle and draw a line with gradient color along it's path.
-    pub fn draw_gradient(&mut self, step_size: f32, gradient: &[[u8; 4]]) {
-        let (x0, y0) = (self.state.x, self.state.y);
-        self.step(step_size);
-        let (x1, y1) = (self.state.x, self.state.y);
-        let points = Bresenham::new((x0, y0), (x1, y1));
-        for (i, (x, y)) in points.enumerate() {
-            *self.buf.voxel_mut(x as u32, y as u32, 0) = Rgba(gradient[i]);
         }
     }
 

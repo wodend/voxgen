@@ -4,45 +4,6 @@ use std::io::Write;
 use std::marker::PhantomData;
 use std::ops::Range;
 use std::path::Path;
-use std::slice::{ChunksExact, ChunksExactMut};
-
-/// A generic view of a voxel byte array.
-pub trait Voxel {
-    const SIZE: u8;
-
-    /// Get a reference to the byte array of `self`.
-    fn as_slice(&self) -> &[u8];
-
-    /// Get a reference to a voxel view of `slice`.
-    fn from_slice(slice: &[u8]) -> &Self;
-
-    /// Get a mutable reference to a voxel view of `slice`.
-    fn from_slice_mut(slice: &mut [u8]) -> &mut Self;
-}
-
-const CHANNEL_COUNT_RGBA: usize = 4;
-/// An RGBA voxel.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
-pub struct Rgba(pub [u8; CHANNEL_COUNT_RGBA]);
-
-impl Voxel for Rgba {
-    const SIZE: u8 = 8;
-
-    #[inline(always)]
-    fn as_slice(&self) -> &[u8] {
-        &self.0
-    }
-
-    fn from_slice(slice: &[u8]) -> &Rgba {
-        assert_eq!(slice.len(), Self::SIZE as usize);
-        unsafe { &*(slice.as_ptr() as *const Rgba) }
-    }
-
-    fn from_slice_mut(slice: &mut [u8]) -> &mut Rgba {
-        assert_eq!(slice.len(), Self::SIZE as usize);
-        unsafe { &mut *(slice.as_mut_ptr() as *mut Rgba) }
-    }
-}
 
 /// A generic voxel buffer.
 pub trait VoxelBuffer {
@@ -68,6 +29,46 @@ pub trait VoxelBuffer {
     /// Panics if (`x`, `y`, `z`) are outside the range of the volumetric image
     /// dimensions (`size_x`, `size_y`, `size_z`).
     fn voxel_mut(&mut self, x: u32, y: u32, z: u32) -> &mut Self::Voxel;
+}
+
+/// A generic view of a voxel byte array.
+pub trait Voxel {
+    const SIZE: u8;
+
+    /// Get a reference to the byte array of `self`.
+    fn as_slice(&self) -> &[u8];
+
+    /// Get a reference to a voxel view of `slice`.
+    fn from_slice(slice: &[u8]) -> &Self;
+
+    /// Get a mutable reference to a voxel view of `slice`.
+    fn from_slice_mut(slice: &mut [u8]) -> &mut Self;
+}
+
+/// An RGBA voxel channel count.
+pub const CHANNEL_COUNT_RGBA: usize = 4;
+
+/// An RGBA voxel.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct Rgba(pub [u8; CHANNEL_COUNT_RGBA]);
+
+impl Voxel for Rgba {
+    const SIZE: u8 = 8;
+
+    #[inline(always)]
+    fn as_slice(&self) -> &[u8] {
+        &self.0
+    }
+
+    fn from_slice(slice: &[u8]) -> &Rgba {
+        assert_eq!(slice.len(), Self::SIZE as usize);
+        unsafe { &*(slice.as_ptr() as *const Rgba) }
+    }
+
+    fn from_slice_mut(slice: &mut [u8]) -> &mut Rgba {
+        assert_eq!(slice.len(), Self::SIZE as usize);
+        unsafe { &mut *(slice.as_mut_ptr() as *mut Rgba) }
+    }
 }
 
 /// A generic array-based voxel buffer.
@@ -170,10 +171,10 @@ where
     }
 }
 
-/// A voxel buffer with RGBA voxels.
+/// An `ArrayVoxelBuffer` with RGBA voxels.
 impl ArrayVoxelBuffer<Rgba> {
-    /// Save a `VoxelBuffer`'s contents as a MagicaVoxel .vox file.
-    /// 
+    /// Save the contents of `self` as a MagicaVoxel .vox file to `path`.
+    ///
     /// MagicaVoxel does not support rendering the transparency channel of RGBA
     /// values. Set the transparency channel to 0 to remove it from the
     /// resulting MagicaVoxel .vox entirely.

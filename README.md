@@ -21,7 +21,7 @@ All voxel generation functions provided operate on types that implement the `Vox
 Manipulate a buffer of voxels by setting individual voxel values.
 
 ```rust
-use voxgen::buffer::{ArrayVoxelBuffer, Rgba, VoxelBuffer};
+use voxgen::voxel_buffer::{ArrayVoxelBuffer, Rgba, VoxelBuffer};
 
 let mut vol = ArrayVoxelBuffer::new(32, 32, 32);
 
@@ -43,7 +43,7 @@ vol.save("test/volumes/red_cross.vox")?;
 Manipulate a `VoxelBuffer` using LOGO-style turtle graphics commands.
 
 ```rust
-use voxgen::turtle::TurtleGraphics;
+use voxgen::turtle_graphics::TurtleGraphics;
 
 // Draw a line and save the output.
 let mut turtle = TurtleGraphics::new(3, 3, 3);

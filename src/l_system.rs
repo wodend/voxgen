@@ -1,3 +1,4 @@
+use crate::turtle_graphics::TurtleGraphics;
 use enterpolation::{linear::ConstEquidistantLinear, Curve};
 use nom::branch::alt;
 use nom::bytes::complete::tag;
@@ -7,11 +8,7 @@ use nom::sequence::separated_pair;
 use nom::IResult;
 use palette::{LinSrgba, Srgba};
 use std::collections::HashMap;
-use std::fs;
 use std::hash::Hash;
-use std::path::PathBuf;
-
-use crate::turtle::{self, TurtleGraphics};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Command {
@@ -191,26 +188,6 @@ impl RenderOptions {
                 turtle.draw(self.step_size);
                 turtle.right(self.angle_increment);
                 turtle.draw(self.step_size);
-            }
-            _ => (),
-        }
-    }
-
-    fn draw_gradient(&self, turtle: &mut TurtleGraphics, c: Command, colors: &[[u8; 4]]) {
-        match c {
-            Command::Step => turtle.step(self.step_size),
-            Command::Draw => turtle.draw_gradient(self.step_size, colors),
-            Command::Left => turtle.left(self.angle_increment),
-            Command::Right => turtle.right(self.angle_increment),
-            Command::DrawLeft => {
-                turtle.draw_gradient(self.step_size, &colors[0..3]);
-                turtle.left(self.angle_increment);
-                turtle.draw_gradient(self.step_size, &colors[3..6]);
-            }
-            Command::DrawRight => {
-                turtle.draw_gradient(self.step_size, &colors[0..3]);
-                turtle.right(self.angle_increment);
-                turtle.draw_gradient(self.step_size, &colors[3..6]);
             }
             _ => (),
         }
